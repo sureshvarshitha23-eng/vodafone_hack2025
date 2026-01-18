@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/Thanu/Downloads/index%20(2).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Emergency Alert &amp; Disaster Response</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff3e3e">
+
+<style>
+:root{
+  --danger:#ff3e3e;
+  --primary:#00f2ff;
+  --bg:#050a14;
+  --card:#101929;
+  --text:#ffffff;
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  text-align:center;
+  padding:40px 20px;
+  background:#0b1730;
+}
+
+section{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:15px;
+  margin-bottom:20px;
+}
+
+button{
+  border:none;
+  padding:18px;
+  border-radius:14px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+.sos{
+  background:var(--danger);
+  color:white;
+  width:100%;
+}
+
+.alert-bar{
+  background:var(--danger);
+  color:white;
+  padding:12px;
+  text-align:center;
+  font-weight:bold;
+  display:none;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.tools{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.tools button{
+  background:#1f3b73;
+  color:white;
+}
+
+footer{
+  text-align:center;
+  padding:15px;
+  background:#02060f;
+}
+
+/* Mobile Optimization */
+@media (max-width:600px){
+  .tools{ grid-template-columns:1fr; }
+  header h1{ font-size:1.6rem; }
+  section{ padding:15px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- EMERGENCY ALERT BAR -->
+<div id="alertBar" class="alert-bar">
+🚨 EMERGENCY ALERT: <span id="alertText"></span>
+</div>
+
+<header>
+<h1>🚨 Disaster Emergency System</h1>
+<p>Offline-Ready Alert &amp; SOS Platform</p>
+</header>
+
+<!-- ALERT SENDER -->
+<section>
+<div class="card">
+<h2>📢 Send Emergency Alert (Demo)</h2>
+<select id="alertMsg" style="width:100%;padding:12px;border-radius:10px;">
+<option>Flood Warning</option>
+<option>Cyclone Alert</option>
+<option>Earthquake Aftershock</option>
+<option>Fire Emergency</option>
+<option>Evacuate Immediately</option>
+</select>
+<br><br>
+<button class="sos" onclick="sendAlert()">SEND ALERT</button>
+</div>
+</section>
+
+<!-- SOS -->
+<section>
+<div class="card">
+<h2>🆘 SOS Emergency</h2>
+<button class="sos" onclick="sendSOS()">SEND SOS</button>
+<p id="sosStatus"></p>
+</div>
+</section>
+
+<!-- TOOLS -->
+<section>
+<div class="card">
+<h2>🧰 Emergency Tools</h2>
+<div class="tools">
+<button onclick="playSound()">🔊 Audio Beacon</button>
+<button onclick="flashLight()">🔦 Signal Light</button>
+<button onclick="callEmergency()">📞 Call 112</button>
+<button onclick="clearAlert()">❌ Clear Alert</button>
+</div>
+</div>
+</section>
+
+<!-- OFFLINE TIPS -->
+<section>
+<div class="card">
+<h2>📘 Offline Safety Tips</h2>
+<ul>
+<li>Store clean drinking water</li>
+<li>Charge phone whenever possible</li>
+<li>Know nearest shelter location</li>
+<li>Stay calm and follow alerts</li>
+</ul>
+</div>
+</section>
+
+<footer>
+Offline Emergency Website | College Project
+</footer>
+
+<script>
+/* ================= ALERT SYSTEM ================= */
+function sendAlert(){
+  const msg=document.getElementById("alertMsg").value;
+  const data={msg,time:new Date().toLocaleString()};
+  localStorage.setItem("alert",JSON.stringify(data));
+  showAlert(data);
+}
+
+function showAlert(data){
+  document.getElementById("alertText").innerText =
+    data.msg+" | "+data.time;
+  document.getElementById("alertBar").style.display="block";
+  playSound();
+}
+
+function clearAlert(){
+  localStorage.removeItem("alert");
+  document.getElementById("alertBar").style.display="none";
+}
+
+/* LOAD ALERT OFFLINE */
+window.onload=function(){
+  const saved=localStorage.getItem("alert");
+  if(saved) showAlert(JSON.parse(saved));
+}
+
+/* ================= SOS ================= */
+function sendSOS(){
+  localStorage.setItem("sos","SOS SENT at "+new Date().toLocaleString());
+  document.getElementById("sosStatus").innerText=
+    "✅ SOS saved offline. Will sync when internet is available.";
+}
+
+/* ================= AUDIO BEACON ================= */
+let audioCtx=null, osc=null;
+function playSound(){
+  if(!audioCtx){
+    audioCtx=new (window.AudioContext || window.webkitAudioContext)();
+    osc=audioCtx.createOscillator();
+    osc.frequency.value=600;
+    osc.connect(audioCtx.destination);
+    osc.start();
+    setTimeout(()=>{
+      osc.stop();
+      audioCtx.close();
+      audioCtx=null;
+    },2000);
+  }
+}
+
+/* ================= FLASH SIGNAL ================= */
+function flashLight(){
+  let count=0;
+  const i=setInterval(()=>{
+    document.body.style.background=
+      document.body.style.background=="white" ? "black" : "white";
+    count++;
+    if(count>6){
+      clearInterval(i);
+      document.body.style.background="var(--bg)";
+    }
+  },300);
+}
+
+/* ================= CALL ================= */
+function callEmergency(){
+  window.location.href="tel:112";
+}
+</script>
+
+
+</body></html>

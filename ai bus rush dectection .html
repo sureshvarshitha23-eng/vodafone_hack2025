@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Rush Level App</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b, #86a8e7, #91eae4);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease infinite;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .app-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        input, select {
+            width: 80%;
+        }
+
+        button {
+            background: #4ecdc4;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45b7aa;
+        }
+
+        .bus-info {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .rush-level {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .percentage-bar {
+            width: 100%;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .percentage-fill {
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .low { background: #2ecc71; }
+        .medium { background: #f39c12; }
+        .high { background: #e74c3c; }
+
+        .stops {
+            list-style: none;
+            padding: 0;
+        }
+
+        .stop {
+            background: #f8f9fa;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .crowdness {
+            font-weight: bold;
+        }
+
+        .arrival-time {
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>Bus Rush Level</h1>
+        <div class="input-section">
+            <input type="text" id="busNumber" placeholder="Enter Bus Number (e.g., 101)">
+            <select id="location">
+                <option value="">Select Current Location to Destination</option>
+                <option value="downtown-to-airport">Downtown to Airport</option>
+                <option value="airport-to-downtown">Airport to Downtown</option>
+                <option value="mall-to-station">Mall to Station</option>
+                <option value="station-to-mall">Station to Mall</option>
+            </select>
+            <button onclick="showBusInfo()">Check Rush Level</button>
+        </div>
+        <div class="bus-info" id="busInfo">
+            <div class="rush-level" id="rushLevel"></div>
+            <div class="percentage-bar">
+                <div class="percentage-fill" id="percentageFill"></div>
+            </div>
+            <ul class="stops" id="stopsList"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Dummy data for buses and routes with percentage rush levels
+        const busData = {
+            "101": {
+                rushPercentage: 85,
+                stops: [
+                    { name: "Stop A", crowdness: "High", arrival: "5 min" },
+                    { name: "Stop B", crowdness: "Medium", arrival: "10 min" },
+                    { name: "Stop C", crowdness: "Low", arrival: "15 min" },
+                    { name: "Stop D", crowdness: "High", arrival: "20 min" }
+                ]
+            },
+            "downtown-to-airport": {
+                rushPercentage: 60,
+                stops: [
+                    { name: "Downtown Central", crowdness: "Medium", arrival: "3 min" },
+                    { name: "City Park", crowdness: "Low", arrival: "8 min" },
+                    { name: "Airport Terminal", crowdness: "High", arrival: "15 min" }
+                ]
+            },
+            "airport-to-downtown": {
+                rushPercentage: 30,
+                stops: [
+                    { name: "Airport Terminal", crowdness: "Low", arrival: "2 min" },
+                    { name: "City Park", crowdness: "Medium", arrival: "7 min" },
+                    { name: "Downtown Central", crowdness: "Low", arrival: "12 min" }
+                ]
+            },
+            "mall-to-station": {
+                rushPercentage: 90,
+                stops: [
+                    { name: "Shopping Mall", crowdness: "High", arrival: "4 min" },
+                    { name: "Main Street", crowdness: "Medium", arrival: "9 min" },
+                    { name: "Train Station", crowdness: "High", arrival: "14 min" }
+                ]
+            },
+            "station-to-mall": {
+                rushPercentage: 50,
+                stops: [
+                    { name: "Train Station", crowdness: "Medium", arrival: "3 min" },
+                    { name: "Main Street", crowdness: "Low", arrival: "8 min" },
+                    { name: "Shopping Mall", crowdness: "Medium", arrival: "13 min" }
+                ]
+            }
+        };
+
+        function showBusInfo() {
+            const busNumber = document.getElementById('busNumber').value.trim();
+            const location = document.getElementById('location').value;
+            const busInfoDiv = document.getElementById('busInfo');
+            const rushLevelDiv = document.getElementById('rushLevel');
+            const percentageFill = document.getElementById('percentageFill');
+            const stopsList = document.getElementById('stopsList');
+
+            let data = null;
+            if (busNumber && busData[busNumber]) {
+                data = busData[busNumber];
+            } else if (location && busData[location]) {
+                data = busData[location];
+            }
+
+            if (data) {
+                const percentage = data.rushPercentage;
+                rushLevelDiv.textContent = `Rush Level: ${percentage}%`;
+
+                percentageFill.style.width = `${percentage}%`;
+                percentageFill.className = `percentage-fill ${percentage >= 70 ? 'high' : percentage >= 40 ? 'medium' : 'low'}`;
+
+                stopsList.innerHTML = '';
+                data.stops.forEach(stop => {
+                    const li = document.createElement('li');
+                    li.className = 'stop';
+                    li.innerHTML = `
+                        <span>${stop.name}</span>
+                        <span class="crowdness ${stop.crowdness.toLowerCase()}">${stop.crowdness}</span>
+                        <span class="arrival-time">${stop.arrival}</span>
+                    `;
+                    stopsList.appendChild(li);
+                });
+
+                busInfoDiv.style.display = 'block';
+            } else {
+                alert('Bus number or route not found. Please try again.');
+                busInfoDiv.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
